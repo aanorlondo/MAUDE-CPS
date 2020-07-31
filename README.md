@@ -48,7 +48,7 @@ Type the following commands in the right order :
 
         search INIT =>* s:SYS such that isComplete(s:SYS) .  
         
-[Don't forget the space and the dot, otherwise it won't work !)]
+[Don't forget the space and the dot at the end, otherwise it won't work !]
 All 24 solutions and the complete path should be displayed in a sequential textual form.
 
 * you can also simulate the execution to show one single path by using the following command :
