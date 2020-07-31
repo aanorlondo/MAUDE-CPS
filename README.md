@@ -12,7 +12,7 @@ In order to execute / simulate or simply play with the model, it is necessary to
 
 ---Maude installation---
 
-This has been tested on Ubuntu 16.04 / 18.02 and 20.04 versions.
+This has been tested on Ubuntu 16.04, 18.02 and 20.04 versions.
 Go to terminal : type "sudo apt install maude" then follow steps (Maude 2.7 version should be installed)
 
 
