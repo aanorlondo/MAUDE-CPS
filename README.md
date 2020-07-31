@@ -1,12 +1,10 @@
 # MAUDE-CPS
 Maude specification of car assembly CPS case study. In paper submitted to IEEE CPSCAPP @ IEEE AICCSA 2020 (submission 145)
 
-
 This repository contains the Maude implementation presented in the paper.
 
 
 The file "spec.maude" contains the CPS-SPEC functional module.
-
 The file "behavior.maude" containts the CPS-BEH functional module.
 
 In order to execute / simulate or simply play with the model, it is necessary to first install Maude.
