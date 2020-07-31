@@ -33,8 +33,11 @@ This should appear :
 
 Once maude running, the provided .maude files need to be loaded for compilation.
 Type the following commands in the right order :
-# load *path*/spec.maude
-# load *path*/behavior.maude
+
+1- load *path*/spec.maude
+
+2- load *path*/behavior.maude
+
 *path* being the path of the folder containing both files.
 
 
