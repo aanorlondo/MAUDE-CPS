@@ -1,0 +1,285 @@
+fmod CPS-SPEC is
+protecting INT . protecting BOOL .
+
+sorts SYS F D A E EL W WL .
+subsort F < E . subsort A < E . subsort D < E . subsort W < E . subsort WL < E . 
+subsort E < EL . subsort W < WL .
+
+***SIGNATURES****
+---SYSTEM STRUCTURE---
+op SYS{_}: EL -> SYS [ctor] .
+op FRAME{id:_|frdoor:_|fldoor:_|brdoor:_|bldoor:_|paint:_|frwheel:_|flwheel:_|brwheel:_|blwheel:_}: Int Int Int Int Int Bool Int Int Int Int -> F [ctor] .
+op DOOR{id:_|attch:_}: Int Int -> D [ctor] .
+op ARM{id:_|busy:_|attch:_}:  Int Bool Int -> A [ctor] .
+op WHEEL{id:_|attch:_} : Int Int -> W [ctor] .
+
+---ordered list of entities
+op nilE : -> EL [ctor] .
+op _+_ : EL EL -> EL [ctor assoc id: nilE] .
+
+---unordered list of wheels
+op nilW : -> WL [ctor] .
+op _*_ : WL WL -> WL [ctor assoc comm id: nilW] .
+
+---initial configuration
+op INIT : -> SYS [ctor].
+
+---GETTERS--
+---get all entities in a system
+op getAll(_) :  SYS -> EL .
+
+---fetch specific entity by id
+	op getE(_,_) :  EL Int -> E .
+	op getId(_) :  E -> Int .
+	
+---grab a wheel from wheels set
+	op getW(_,_) : E WL -> WL .
+	
+ops getFrDoor(_) getFlDoor(_) getBrDoor(_) getBlDoor(_) : F -> Int .
+ops getFrWheel(_) getFlWheel(_) getBrWheel(_) getBlWheel(_) : F -> Int .
+
+op getAttchId(_) : E -> Int .
+op getAttchE(_,_) : E E -> E .
+op getAttchEE(_,_,_) : E E E -> E .
+
+---calculating system length (number of entities)
+op getSysLen(_) :  SYS -> Int .
+op len(_) :  EL -> Int .
+
+---SETTERS---
+ops setFrDoor(_,_) setFlDoor(_,_) setBrDoor(_,_) setBlDoor(_,_) :  F D -> F .
+ops setFrWheel(_,_) setFlWheel(_,_) setBrWheel(_,_) setBlWheel(_,_) : F W -> F .
+op attchW(_,_) : WL F -> WL .
+op setAttch(_,_) :  E E -> E .
+op detach(_) : E -> E .
+op setPaintT(_) :  F -> F .
+op setBusyT(_) :  A -> A .
+op setBusyF(_) :  A -> A .
+
+---PREDICATES---
+op isPaint(_) :  F -> Bool .
+op isBusy(_) :  A -> Bool .
+op isAttch(_) :  E -> Bool .
+op isMounted(_) : F -> Bool .
+op isFinish(_) :  F -> Bool .
+op wheelsOK(_) : F -> Bool .
+op isComplete(_) :  SYS -> Bool .
+
+
+
+***IMPLEMENTATIONS***
+---initial configuration
+eq INIT = SYS{ 	FRAME{id: 1 |frdoor: 0 |fldoor: 0 |brdoor: 0 |bldoor: 0 |paint: false |frwheel: 0 |flwheel: 0 |brwheel: 0 |blwheel: 0 } + 
+				DOOR{id: 2 |attch: 0 } + 
+				DOOR{id: 3 |attch: 0 } + 
+				DOOR{id: 4 |attch: 0 } + 
+				DOOR{id: 5 |attch: 0 } + 
+				ARM{id: 6 |busy: false |attch: 0 } + 
+				ARM{id: 7 |busy: false |attch: 0 } +
+				WHEEL{id: 8 |attch: 0 } *
+				WHEEL{id: 9 |attch: 0 } *
+				WHEEL{id: 10 |attch: 0 } *
+				WHEEL{id: 11 |attch: 0 }
+			} .
+
+---VARIABLES---
+var sys :  SYS .
+var e e1 e2 :  E .
+var el :  EL .
+var f :  F .
+vars d fr fl br bl : D .
+vars a ga pa :  A .
+vars i j k l m n o p q :  Int .
+vars x y z :  Bool .
+vars w w1 w2 w3 w4 : W .
+var wl : WL .
+
+---GETTERS----
+---all entities of a system
+	eq getAll(SYS { el } ) = el .
+	
+---number of entities
+	eq getSysLen(sys) = len(getAll(sys)) .
+	eq len(nilE) = 0 .
+	eq len(e + el) = 1 + len(el) .
+	
+---get entity by ID
+	eq getE(el,0 ) = nilE .
+	eq getE(e + el , i) = if (i > len(e + el)) then nilE else if (i == 1) then e else getE(el, i - 1) fi fi .
+	
+---get wheel from set of wheels
+	eq getW(a, nilW) = nilW .
+	eq getW(a, w * wl) =  if isAttch(w) == false then (setAttch(w,a) * wl) else (w * getW(a,wl) ) fi .
+
+---get ID of an entity
+	eq getId(nilE) = 0 .
+	eq getId(DOOR{id: i |attch: j }) = i .
+	eq getId(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = i .
+	eq getId(ARM{id: i |busy: x |attch: j }) = i .
+	eq getId(WHEEL{id: i |attch: j }) = i .
+	
+---get doors ID from the FRAME
+	eq getFrDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = j . 
+	eq getFlDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = k . 
+	eq getBrDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = l . 
+	eq getBlDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = m .
+	
+---get wheels ID from the FRAME
+	eq getFrWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = n . 
+	eq getFlWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = o . 
+	eq getBrWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = p . 
+	eq getBlWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = q . 
+
+	
+---get what E id is an E attached to
+	eq getAttch(DOOR{id: i |attch: j } ) = j .
+	eq getAttch(ARM{id: i |busy: x |attch: j } ) = j .
+	eq getAttch(WHEEL{id: i |attch: j } ) = j .
+
+---get from a E1 list (first parameter), see what e(in E1) is attached to E2 (the second paramater)
+	eq getAttchE(nilW,e) = nilW .
+	eq getAttchE(w * wl , e) = if getAttch(w) == getId(e) then w else getAttchE(wl,e) fi .
+	
+---gat from a E1 list (first parameter), see what e(in E1) is attached to E2 (the second paramater) and to E3 (the third parameter)
+	eq getAttchEE(nilW, e1 , e2) = nilW .
+	eq getAttchEE(w * wl , e1 , e2) = if (getAttch(w) == getId(e2) and getAttch(e1) == getId(w)) then w else getAttchEE(wl,e1,e2) fi .
+	
+---SETTERS
+---attach doors to frame
+	eq setFrDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , d) 
+		= FRAME{id: i |frdoor: getId(d) |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q }  .
+		
+	eq setFlDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , d) 
+		= FRAME{id: i |frdoor: j |fldoor: getId(d) |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q }  .
+		
+	eq setBrDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , d) 
+		= FRAME{id: i |frdoor: j |fldoor: k |brdoor: getId(d) |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q }  .
+		
+	eq setBlDoor(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , d) 
+		= FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: getId(d) |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q }  .
+		
+		
+---attach wheels to frame
+	eq setFrWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , w ) 
+		= FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: getId(w) |flwheel: o |brwheel: p |blwheel: q } . 
+		
+	eq setFlWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , w ) 
+		= FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: getId(w) |brwheel: p |blwheel: q }  . 
+		
+	eq setBrWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , w ) 
+		= FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: getId(w) |blwheel: q }  . 
+		
+	eq setBlWheel(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } , w ) 
+		= FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: getId(w) }  . 
+	
+	
+---set attach true(id)/false(0)
+	---attach arm to door
+		eq setAttch(ARM{id: i |busy: x |attch: j } , d) = ARM{id: i |busy: x |attch: getId(d) }  .
+		
+	---attach door to arm
+		eq setAttch(DOOR{id: i |attch: j } ,a) = DOOR{id: i |attch: getId(a) }  .
+		
+	---attach frame to door
+		eq setAttch(DOOR{id: i |attch: j } ,f) = DOOR{id: i |attch: getId(f) }  .
+		
+	---attach door to frame at the right place
+		eq setAttch(f,d) = if getId(d) == 2 then setFrDoor(f,d) else
+								if getId(d) == 3 then setFlDoor(f,d) else 
+									if getId(d) == 4 then setBrDoor(f,d) else
+										if getId(d) == 5 then setBlDoor(f,d) else f fi
+									fi
+								fi
+							fi .
+							
+	---attach arm to frame
+		eq setAttch(ARM{id: i |busy: x |attch: j }, f) = ARM{id: i |busy: x |attch: getId(f) } .
+		
+	---attach arm to wheel
+		eq setAttch(ARM{id: i |busy: x |attch: j }, w) = ARM{id: i |busy: x |attch: getId(w) } .
+		
+	---attach frame to wheel
+		eq setAttch(WHEEL{id: i |attch: j }, f) = WHEEL{id: i |attch: getId(f) } .
+		---and from a list of wheels
+			eq attchW(nilW,f) = nilW .
+			eq attchW(w * wl , f) = if (getAttch(w) =/= getId(f) and getAttch(w) =/= 0) then setAttch(w,f) * wl else  w * attchW(wl,f) fi .
+			
+		
+	---attach wheel to arm
+		eq setAttch(WHEEL{id: i |attch: j }, a) = WHEEL{id: i |attch: getId(a) } . 
+		
+	---detach arm from anything
+		eq detach(ARM{id: i |busy: x |attch: j }) = ARM{id: i |busy: x |attch: 0 } .
+
+			
+---set frame paint to true
+	eq setPaintT(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) 
+		=  FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: true |frwheel: n |flwheel: o |brwheel: p |blwheel: q }  .
+	
+---set busy arm to true/fals
+	eq setBusyT(ARM{id: i |busy: x |attch: j } ) = ARM{id: i |busy: true |attch: j }  .
+	eq setBusyF(ARM{id: i |busy: x |attch: j } ) = ARM{id: i |busy: false |attch: j }  .  
+
+---PREDICATES---
+---is the frame painted ?
+	eq isPaint(FRAME{id: i |frdoor: j |fldoor: k |brdoor: l |bldoor: m |paint: x |frwheel: n |flwheel: o |brwheel: p |blwheel: q } ) = x .
+	
+---is the arm busy ?
+	eq isBusy(ARM{id: i |busy: x |attch: j } ) = x .
+	
+---is an arm attached ?
+	eq isAttch(a) = if getAttch(a) == 0 then false else true fi .
+			
+---is a door attached ?
+	eq isAttch(d) = if getAttch(d) == 0 then false else true fi .
+	
+---is a wheel attached ?
+	eq isAttch(w) = if getAttch(w) == 0 then false else true fi .
+
+
+---are the doors fixed to the car ?
+	eq isMounted(f) =  if (
+							(getFrDoor(f) == 2) and
+							(getFlDoor(f) == 3) and
+							(getBrDoor(f) == 4) and
+							(getBlDoor(f) == 5)						
+						)
+					then true else false fi .
+					
+---are the wheels fixed to the car ?
+	eq wheelsOK(f) = if (
+							(getFrWheel(f) =/= 0) and
+							(getFlWheel(f) =/= 0) and
+							(getBrWheel(f) =/= 0) and
+							(getBlWheel(f) =/= 0)
+						)
+					then true else false fi . 
+
+
+---is the car assembly finished ?
+	eq isFinish(f) = if (	(isMounted(f) == true) and
+							(isPaint(f) == true) and
+							(wheelsOK(f) == true)
+						)
+					then true else false fi .
+
+
+---has the system completed its tasks ? (includes isFinish(f) but also idle states of arms and their not being attached to anything)
+	eq isComplete(SYS{ f + fr + fl + br + bl + ga + pa + w1 * w2 * w3 * w4 }) = if (
+												(isFinish(f) == true) 		and
+												(getAttch(fr) == getId(f)) 	and
+												(getAttch(fl) == getId(f)) 	and
+												(getAttch(br) == getId(f))	and
+												(getAttch(bl) == getId(f))	and
+												(getAttch(w1) == getId(f)) 	and
+												(getAttch(w2) == getId(f)) 	and
+												(getAttch(w3) == getId(f))	and
+												(getAttch(w4) == getId(f))	and
+												(isBusy(ga) == false)		and
+												(isBusy(pa) == false)		and
+												(getAttch(ga) == 0)			and
+												(getAttch(pa) == 0)	
+											)
+										then true else false fi .							  
+
+endfm

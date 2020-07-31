@@ -1,0 +1,210 @@
+mod CPS-BEH is
+including CPS-SPEC .
+
+---VARIABLES---
+var sys :  SYS .
+var e :  E .
+var el :  EL .
+var f :  F .
+vars d fr fl br bl :  D .
+vars a ga pa :  A .
+vars i j k l m n o p q :  Int .
+vars x y z :  Bool .
+vars w w1 w2 w3 w4 : W .
+var wl : WL .
+
+---LEGEND--------------------------
+--- FR / fr / Fr : Front-Right 
+--- FL / fl / Fl : Front-Left
+--- BR / br / Br : Back-Right 
+--- BL / bl / Bl : Back-Left 
+---	f : Frame
+--- ga : Grabing Arm
+--- pa : Painting Arm
+--- w / wi : Wheels
+--- wl : Set of Sheels
+-----------------------------------
+
+***MOUNTING DOORS****
+---GRABING DOORS---
+	---grab fr door
+	crl[ARM-1-grab-FR-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + setAttch(fr,ga) + fl + br + bl + setAttch(setBusyT(ga),fr) + pa + wl }
+	if 		isBusy(ga) == false
+		and isAttch(fr) == false 
+		and getFrDoor(f) ==  0 .
+
+	---grab fl door
+	crl[ARM-1-grab-FL-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + setAttch(fl,ga) + br + bl + setAttch(setBusyT(ga),fl) + pa + wl }
+	if 		isBusy(ga) == false
+		and isAttch(fl) == false 
+		and getFlDoor(f) ==  0 .
+	
+	---grab br door
+	crl[ARM-1-grab-BR-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + setAttch(br,ga) + bl + setAttch(setBusyT(ga),br) + pa + wl }
+	if 		isBusy(ga) == false
+		and isAttch(br) == false 
+		and getBrDoor(f) ==  0 .
+	
+	---grab bl door
+	crl[ARM-1-grab-BL-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + setAttch(bl,ga) + setAttch(setBusyT(ga),bl) + pa + wl }
+	if 		isBusy(ga) == false
+		and isAttch(bl) == false 
+		and getBlDoor(f) ==  0 .
+
+
+---ATTACHING DOORS---
+	---attach fr door to frame
+	crl[ARM-1-attach-FR-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setAttch(f,fr) + setAttch(fr,f) + fl + br + bl + ga + pa + wl }
+	if 		getFrDoor(f) == 0 
+		and getAttch(ga) == getId(fr) 
+		and getAttch(fr) == getId(ga) .
+	
+	---attach fl door to frame
+	crl[ARM-1-attach-FL-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setAttch(f,fl) + fr + setAttch(fl,f) + br + bl + ga + pa + wl }
+	if 		getFlDoor(f) == 0 
+		and getAttch(ga) == getId(fl) 
+		and getAttch(fl) == getId(ga) .
+	
+	---attach br door to frame
+	crl[ARM-1-attach-BR-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setAttch(f,br) + fr + fl + setAttch(br,f) + bl + ga + pa + wl }
+	if 		getBrDoor(f) == 0 
+		and getAttch(ga) == getId(br) 
+		and getAttch(br) == getId(ga) .
+	
+	---attach bl door to frame
+	crl[ARM-1-attach-BL-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setAttch(f,bl) + fr + fl + br + setAttch(bl,f) + ga + pa + wl }
+	if  	getBlDoor(f) == 0 
+		and getAttch(ga) == getId(bl) 
+		and getAttch(bl) == getId(ga) .
+		
+	
+---RELEASING DOORS---
+	---release fr door from arm
+	crl[ARM-1-free-FR-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + detach(setBusyF(ga)) + pa + wl }
+	if 		getFrDoor(f)  ==  getId(fr)
+		and getAttch(fr) == getId(f) 
+		and getAttch(ga)  ==  getId(fr) 
+		and isBusy(ga) == true .
+	
+	---release fl door from arm
+	crl[ARM-1-free-FL-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + detach(setBusyF(ga)) + pa + wl }
+	if 		getFlDoor(f)  ==  getId(fl)
+		and getAttch(fl) == getId(f) 
+		and getAttch(ga)  ==  getId(fl) 
+		and isBusy(ga) == true .
+	
+	---release br door from arm
+	crl[ARM-1-free-BR-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + detach(setBusyF(ga)) + pa + wl }
+	if 		getBrDoor(f)  ==  getId(br)
+		and getAttch(br) == getId(f) 
+		and getAttch(ga)  ==  getId(br) 
+		and isBusy(ga) == true .
+	
+	---release bl door from arm
+	crl[ARM-1-free-FL-door] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + detach(setBusyF(ga)) + pa + wl }
+	if 		getBlDoor(f)  ==  getId(bl)
+		and getAttch(bl) == getId(f) 
+		and getAttch(ga)  ==  getId(bl) 
+		and isBusy(ga) == true .
+	
+
+***MOUNTING WHEELS
+
+---GRABBING WHEELS
+	---grab any wheel
+	crl[ARM-1-grab-wheel] : 
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + setBusyT(ga) + pa + getW(ga,wl) }
+	if		isBusy(ga) == false
+		and isBusy(pa) == false 
+		and getW(ga,wl) =/= nilW
+		and isMounted(f) == true 
+		and isPaint(f) == true 
+		and wheelsOK(f) == false .
+	
+	---mark the grabbed wheel as arm attach attribute
+	crl[ARM-1-mark-attached] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + setAttch(ga,getAttchE(wl,ga)) + pa + wl }
+	if		isBusy(ga) == true
+		and getAttch(getAttchE(wl,ga)) == getId(ga) .
+
+
+---attaching wheels
+
+	---attach fr wheel to frame
+	crl[ARM-1-attach-FR-wheel] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setFrWheel(f,getAttchE(wl,ga)) + fr + fl + br + bl + ga + pa + attchW(wl,f) }
+	if 		getFrWheel(f) == 0
+		and isBusy(ga) == true 
+		and getId(getAttchE(wl,ga)) == getAttch(ga) .
+	
+	---attach fl wheel to frame	
+	crl[ARM-1-attach-FL-wheel] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setFlWheel(f,getAttchE(wl,ga)) + fr + fl + br + bl + ga + pa + attchW(wl,f) }
+	if 		getFlWheel(f) == 0
+		and isBusy(ga) == true 
+		and getId(getAttchE(wl,ga)) == getAttch(ga) .
+	
+	---attach br wheel to frame	
+	crl[ARM-1-attach-BR-wheel] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setBrWheel(f,getAttchE(wl,ga)) + fr + fl + br + bl + ga + pa + attchW(wl,f) }
+	if 		getBrWheel(f) == 0
+		and isBusy(ga) == true 
+		and getId(getAttchE(wl,ga)) == getAttch(ga) .
+
+	---attach bl wheel to frame
+	crl[ARM-1-attach-BL-wheel] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setBlWheel(f,getAttchE(wl,ga)) + fr + fl + br + bl + ga + pa + attchW(wl,f) }
+	if 		getBlWheel(f) == 0
+		and isBusy(ga) == true 
+		and getId(getAttchE(wl,ga)) == getAttch(ga) .		
+	
+---release the wheel and go idle
+	crl[ARM-1-release-wheel] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + detach(setBusyF(ga)) + pa + wl }
+	if		getId(getAttchEE(wl,ga,f)) == getAttch(ga) 
+		and isBusy(ga) == true .
+		
+			
+
+***PAINTING***
+	---aiming at the car
+	crl[ARM-2-aim-at-car] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + ga + setAttch(setBusyT(pa),f) + wl }
+	if 		isMounted(f) == true
+		and isPaint(f) == false 
+		and isBusy(ga) == false 
+		and getAttch(ga) == 0 
+		and isBusy(pa) == false 
+		and getAttch(pa) == 0 .
+	
+	---painting
+	crl[ARM-2-paint-car] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ setPaintT(f) + fr + fl + br + bl + ga + pa + wl }
+	if 		isMounted(f) == true
+		and isPaint(f) == false 
+		and isBusy(ga) == false 
+		and getAttch(ga) == 0 
+		and isBusy(pa) == true 
+		and getAttch(pa) == getId(f) . 
+	
+	---go idle (release car in the paper)
+	crl[ARM-2-go-idle] :
+	SYS{ f + fr + fl + br + bl + ga + pa + wl } => SYS{ f + fr + fl + br + bl + ga + detach(setBusyF(pa)) + wl }
+	if 		isPaint(f) == true 
+		and isBusy(pa) == true
+		and isBusy(ga) == false 
+		and getAttch(pa) == getId(f) .
+
+endm
